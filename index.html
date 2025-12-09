@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Colorful GST Invoice Bill</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* 🎨 COLOR PALETTE */
+        :root {
+            --primary-blue: #00BFFF;
+            --secondary-cyan: #14C8F4;
+            --light-bg: #E0F7FA;
+            --accent-green: #38C172;
+            --danger-red: #E3342F;
+            --text-color: #333;
+        }
+
+        /* -------------------------------------- */
+        /* 1. BODY & BACKGROUND GRADIENT */
+        /* -------------------------------------- */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 40px 20px; 
+            max-width: 850px; 
+            margin: 0 auto; 
+            background: linear-gradient(135deg, #A8E6CF, #DCDCDC, #00BFFF); 
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        /* 2. MAIN INVOICE CONTAINER */
+        #invoice-content { 
+            background-color: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15); 
+        }
+        
+        /* Company Details Header */
+        #invoice-header-details {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: var(--light-bg);
+            border: 1px solid var(--secondary-cyan);
+        }
+        #invoice-header-details h2 {
+            margin: 0 0 5px 0;
+            color: var(--primary-blue);
+            font-size: 1.8em;
+        }
+        #invoice-header-details p {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--text-color);
+        }
+
+        h1 { 
+            color: var(--primary-blue); 
+            border-bottom: 2px solid var(--secondary-cyan); 
+            padding-bottom: 10px; 
+            margin-top: 0; 
+            text-align: center;
+            font-size: 2em;
+        }
+
+        /* -------------------------------------- */
+        /* 3. CUSTOMER AND INVOICE NUMBER INPUTS */
+        /* -------------------------------------- */
+        .header-info { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 25px; 
+            margin-top: 25px; 
+        }
+        /* Styling for the Billing/Date block - ensures internal vertical stacking */
+        .header-info > div:first-child { 
+            display: flex;
+            flex-direction: column;
+            gap: 1px; /* Space between the name and the date */
+        }
+        .header-info > div {
+            background-color: var(--light-bg);
+            padding: 12px; 
+            border-radius: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Group for multiple header items (like Inv No, GSTIN) */
+        .header-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px; 
+        }
+        
+        /* ADJUSTED CUSTOMER NAME WIDTH */
+        .header-info input[type="text"] { 
+            border: 1px solid var(--secondary-cyan); 
+            padding: 8px; 
+            border-radius: 8px; 
+            width: 100px; 
+        }
+        
+        /* ADJUSTED DATE/INV NO/GSTIN WIDTHS */
+        .header-group input, .header-info input[type="date"] {
+            border: 1px solid var(--secondary-cyan);
+            padding: 8px;
+            border-radius: 8px;
+            width: 80px; 
+        }
+        
+        /* 4. TABLE STYLING */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            border-radius: 8px; 
+            overflow: hidden; 
+        }
+        th, td { 
+            border: 1pt solid #ddd;
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background: linear-gradient(to right, var(--secondary-cyan), var(--primary-blue));
+            color: white; 
+            font-weight: 600;
+        }
+        tr:nth-child(even) { background-color: #f7f7f7; }
+        
+        td input[type="text"], td input[type="number"] { 
+            width: 90%; 
+            padding: 5px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+        }
+        
+        /* 5. SUMMARY STYLING */
+        .summary { 
+            text-align: right; 
+            margin-top: 30px; 
+            padding-right: 10px;
+        }
+        .summary label { color: var(--text-color); }
+        .summary-value { 
+            font-weight: 600 !important;
+            border-bottom: 1px dashed #ccc; 
+        }
+        
+        /* GST Rate Input Styling */
+        #gst-rate-input-row { 
+            justify-content: flex-end; 
+            align-items: center;
+            margin-bottom: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .tax-rate-input-group {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        .tax-rate-input-group input {
+            width: 50px !important;
+            margin-right: 5px;
+            text-align: right;
+        }
+
+        #grandTotal { 
+            color: var(--danger-red); 
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        /* 6. BUTTONS */
+        .utility-buttons { 
+            margin-top: 30px; 
+            display: flex; 
+            gap: 15px; 
+            justify-content: center; 
+        }
+        .utility-buttons button { 
+            color: white; 
+            padding: 12px 25px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1.1em;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .utility-buttons button:first-child { background-color: var(--accent-green); }
+        .utility-buttons button:last-child { background-color: var(--primary-blue); }
+
+        .delete-btn { 
+            background-color: var(--danger-red); 
+            color: white; 
+            border: none; 
+            padding: 5px 8px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-left: 10px; 
+            font-size: 0.8em; 
+        }
+        
+        /* PDF/Print Hiding */
+        @media print {
+            .utility-buttons, .delete-btn, .tax-rate-input-group input { display: none !important; }
+            .tax-rate-input-group { margin-right: 10px; }
+            .header-info input, td input { border: none; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="invoice-content">
+        
+        <div id="invoice-header-details" contenteditable="true">
+            <h2>Company Name</h2>
+            <p>123, Tamilnadu,  India</p>
+            <p>Email: contact@yourcompany.com | Phone: +91 0000000000</p>
+            <p>GSTIN: **27ABCEF1234G5Z6**</p>
+        </div>
+        
+        <h1>🧾 GST TAX INVOICE</h1>
+        
+        <div class="header-info">
+            <div>
+                <strong>Billing To:</strong><br>
+                <input type="text" id="customer-name" value="[Customer Name]" placeholder="Enter Customer Name">
+                
+                <br> <strong>Invoice Date:</strong><br>
+                <input type="date" id="invoice-date">
+            </div>
+            
+            <div class="header-group">
+                <div>
+                    <strong>Invoice No:</strong><br>
+                    <input type="text" id="invoice-number" value="INV-001" placeholder="Invoice Number">
+                </div>
+                <div>
+                    <strong>Customer GSTIN:</strong><br>
+                    <input type="text" id="gstin" value="27AABBCCCD1Z2" placeholder="Customer GSTIN">
+                </div>
+            </div>
+            
+            <div style="visibility: hidden;"></div> 
+        </div>
+
+        <table id="invoiceTable">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th style="width: 10%;">Qty</th>
+                    <th style="width: 15%;">Unit Price ($)</th>
+                    <th style="width: 15%;">Line Total ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+
+        <div class="summary">
+            <div>
+                <label>Subtotal (Taxable Value):</label>
+                <span id="subTotal" class="summary-value">0.00</span>
+            </div>
+            
+            <div id="gst-rate-input-row">
+                <label>Total GST Rate:</label>
+                <div class="tax-rate-input-group">
+                    <input type="number" id="tax-rate-input" value="18" min="0" max="100" step="0.1" oninput="updateGrandTotal()">
+                    <span>%</span>
+                </div>
+                <span style="width: 100px;">(Enter 5, 12, 18, or 28)</span>
+            </div>
+            
+            <div>
+                <label>+ CGST (<span id="cgst-rate">9.0</span>%):</label>
+                <span id="cgstAmount" class="summary-value">0.00</span>
+            </div>
+
+            <div>
+                <label>+ SGST (<span id="sgst-rate">9.0</span>%):</label>
+                <span id="sgstAmount" class="summary-value">0.00</span>
+            </div>
+            
+            <h2>
+                <label>Grand Total:</label> 
+                <span id="grandTotal" class="summary-value">0.00</span>
+            </h2>
+        </div>
+    </div>
+    
+    <div class="utility-buttons">
+        <button onclick="addRow()">Add</button>
+        <button onclick="downloadPDF()">⬇️ Download PDF</button>
+    </div>
+
+    <script>
+        // Set the initial date to today
+        document.getElementById('invoice-date').valueAsDate = new Date();
+
+        // --- Core Calculation Functions ---
+
+        function calculateRowTotal(row) {
+            const qty = parseFloat(row.querySelector('.quantity').value) || 0;
+            const price = parseFloat(row.querySelector('.price').value) || 0;
+            const lineTotal = qty * price;
+            
+            row.querySelector('.line-total').textContent = lineTotal.toFixed(2);
+            return lineTotal;
+        }
+
+        function updateGrandTotal() {
+            const tableBody = document.querySelector('#invoiceTable tbody');
+            const rows = tableBody.querySelectorAll('tr');
+            let subtotal = 0;
+
+            rows.forEach(row => {
+                subtotal += calculateRowTotal(row);
+            });
+
+            // Get the total GST rate entered
+            const totalTaxRatePercent = parseFloat(document.getElementById('tax-rate-input').value) || 0;
+            
+            // Split the total tax rate into CGST and SGST (for intra-state sale)
+            const cgstRatePercent = (totalTaxRatePercent / 2).toFixed(1);
+            const sgstRatePercent = (totalTaxRatePercent / 2).toFixed(1);
+
+            const cgstTaxRate = cgstRatePercent / 100;
+            const sgstTaxRate = sgstRatePercent / 100;
+            
+            const cgst = subtotal * cgstTaxRate;
+            const sgst = subtotal * sgstTaxRate;
+            
+            const grandTotal = subtotal + cgst + sgst;
+
+            // Update the summary display areas
+            document.getElementById('subTotal').textContent = subtotal.toFixed(2);
+            
+            document.getElementById('cgst-rate').textContent = cgstRatePercent;
+            document.getElementById('sgst-rate').textContent = sgstRatePercent;
+
+            document.getElementById('cgstAmount').textContent = cgst.toFixed(2);
+            document.getElementById('sgstAmount').textContent = sgst.toFixed(2);
+            document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+        }
+        
+        // --- Row Management Functions ---
+
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+            updateGrandTotal(); 
+        }
+
+        function addRow() {
+            const tableBody = document.querySelector('#invoiceTable tbody');
+            const newRow = tableBody.insertRow();
+            
+            newRow.innerHTML = `
+                <td><input type="text" value="Product"></td>
+                <td><input type="number" class="quantity" value="1" min="1"></td>
+                <td><input type="number" class="price" value="0.00" min="0" step="0.01"></td>
+                <td>
+                    <span class="line-total">0.00</span>
+                    <button class="delete-btn" onclick="deleteRow(this)">X</button>
+                </td>
+            `;
+            
+            // Event listeners for quantity and price inputs
+            newRow.querySelectorAll('.quantity, .price').forEach(input => {
+                input.addEventListener('input', updateGrandTotal);
+            });
+
+            updateGrandTotal(); 
+        }
+
+        // --- PDF Download Function ---
+
+        function downloadPDF() {
+            const element = document.getElementById('invoice-content');
+            
+            // Use Invoice Number for the filename
+            const invNo = document.getElementById('invoice-number').value.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
+            
+            const options = {
+                margin: 10,
+                filename: 'GST_Invoice_' + (invNo || 'Draft') + '_' + new Date().toISOString().slice(0, 10) + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(options).from(element).save();
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            addRow(); // Start with one row
+            document.getElementById('invoice-date').addEventListener('change', updateGrandTotal);
+        });
+    </script>
+</body>
+</html>
